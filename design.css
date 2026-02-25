@@ -1,0 +1,379 @@
+
+/* --- 全体設定 --- */
+body {
+    font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", sans-serif;
+    line-height: 1.6;
+    color: #333;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f7f6;
+}
+
+/* --- メインコンテンツ（PC：サイドバーの右側で中央寄せ） --- */
+.content-wrapper {
+    box-sizing: border-box;
+    /* 全体を左に250pxずらす（サイドバーと重ならないため） */
+    padding-left: calc(250px + 40px); 
+    padding-right: 40px;
+    padding-top: 40px;
+    padding-bottom: 40px;
+    
+    width: 100% !important; /* calc未使用 */
+    min-height: 100vh;
+    
+    /* 2. 中身を最大1200pxに制限して、中央に寄せる */
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* 子要素（mainやheader）を中央に */
+}
+
+/* header, main, sectionが広がりすぎないように制限 */
+.content-wrapper > header,
+.content-wrapper > main {
+    width: 100%;
+    max-width: 1000px; /* ここで幅制限 */
+}
+
+/* --- 3. サイドメニュー（PC：左側に常時固定） --- */
+#sideMenu {
+    position: fixed;
+    top: 0;
+    left: 0; 
+    width: 250px;
+    height: 100%;
+    background: #2c3e50;
+    color: white;
+    z-index: 5000; /* 重なり順を高く設定 */
+    /* PCでは絶対に隠さない設定 */
+    transform: translateX(0) !important;
+    transition: transform 0.3s ease;
+    padding-top: 20px;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+}
+
+/* サイドメニュー内のリンク設定 */
+#sideMenu nav ul { list-style: none; padding: 0; margin: 0; }
+#sideMenu nav ul li a { 
+    display: block; 
+    color: white; 
+    padding: 15px 20px; 
+    text-decoration: none; 
+    border-bottom: 1px solid #34495e; 
+}
+#sideMenu nav ul li a:hover { background: #34495e; }
+
+/* PCではメニューボタン・閉じるボタン・暗い背景を隠す */
+#menuBtn, #overlay, .close-area {
+    display: none !important;
+}
+
+/* --- ヘッダー・セクションなどの基本パーツ --- */
+header, section, main {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+section {
+    background: white;
+    padding: 30px;
+    margin-bottom: 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+h1, h2 {
+    color: #2c3e50;
+    border-left: 6px solid #27ae60;
+    padding-left: 15px;
+}
+
+/* --- スマホ・半画面・ウィンドウを細くした時の設定（768px以下） --- */
+@media (max-width: 768px) {
+    .content-wrapper {
+        margin-left: 0 !important;
+        padding: 20px !important; /* PC用のpadding-leftをリセット */
+        padding-top: 80px !important; /* ボタン用 */
+        width: 100% !important;
+        max-width: 100% !important;
+        align-items: stretch; /* スマホでは中央寄せを解除して横いっぱいに */
+    }
+
+
+    /* メニューを右側に配置し、最初は隠す */
+    #sideMenu {
+        left: auto;
+        right: 0;
+        transform: translateX(250px) !important;
+        z-index: 6000; /* オーバーレイより上に設定 */
+    }
+
+    /* activeクラスがついたら画面内に戻る */
+    #sideMenu.active {
+        transform: translateX(0) !important;
+    }
+
+    /* スマホ版でのみMENUボタンを表示 */
+    #menuBtn {
+        display: block !important;
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #27ae60;
+        color: white;
+        padding: 10px 15px;
+        z-index: 4000;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: bold;
+    }
+
+    /* スマホ版でのみCLOSEボタンを表示 */
+    .close-area {
+        display: block !important;
+        cursor: pointer;
+        padding: 20px;
+        text-align: left;
+        background: #1a252f;
+        color: white;
+    }
+
+    /* 背景の暗いレイヤー（重なり順をメニューのすぐ下に設定） */
+    #overlay {
+        display: none; 
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 5500 !important; /* メニュー(6000)の下、コンテンツの上 */
+    }
+}
+
+/* --- 6. シミュレーター専用設定 --- */
+#map { height: 450px; border-radius: 8px; margin-top: 20px; border: 1px solid #ccc; }
+select, input { padding: 10px; margin: 5px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px; }
+button { 
+    background: #27ae60; 
+    color: white; 
+    border: none; 
+    padding: 12px 24px; 
+    border-radius: 5px; 
+    cursor: pointer; 
+    font-weight: bold;
+}
+button:hover { background: #219150; }
+/* --- シミュレーター専用設定の修正 --- */
+.input-group { 
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column; /* 縦並びにしてスッキリ */
+    align-items: flex-start;
+}
+
+select, input[type="range"] { 
+    width: 100%;       /* 幅をいっぱいに */
+    max-width: 500px;  /* 長すぎないように制限 */
+    padding: 10px; 
+    margin: 5px 0;     /* 左右のmarginを消して上下だけに */
+    border: 1px solid #ddd; 
+    border-radius: 4px; 
+    font-size: 16px; 
+}
+/*PDFダウン文字装飾*/
+a {
+    text-decoration: none; /* 下線を消す */
+    color: #27ae60;        /* 文字の色を緑にする */
+    font-weight: bold;     /* 太字にする */
+}
+
+a:hover {
+    color: #219150;        /* マウスを乗せたときに色を濃くする */
+}
+/* 数式囲みボックス */
+.formula-box {
+    background: #eef2f3;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 1.1em;
+    margin: 20px 0;
+    overflow-x: auto; /* 長い数式がはみ出ないように */
+}
+
+/* 注釈リストの強調 */
+section ul {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+section ul li {
+    margin-bottom: 10px;
+    padding-left: 20px;
+    position: relative;
+}
+
+section ul li::before {
+    content: "■";
+    color: #27ae60;
+    position: absolute;
+    left: 0;
+}
+/* 出典情報用ボックス */
+.source-box {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    padding: 15px;
+    margin-top: 20px;
+    font-size: 0.9em;
+    color: #666;
+    border-radius: 4px;
+}
+
+.source-box ul {
+    list-style: none;
+    padding-left: 0;
+    margin-top: 5px;
+}
+
+.source-box li::before {
+    content: "";
+    margin-right: 5px;
+}
+/* テーブル全体のスタイル */
+.data-table {
+    width: 100%;
+    border-collapse: collapse; /* 隣り合う枠線を一本に */
+    margin: 20px 0;
+    font-family: sans-serif;
+}
+
+/* ヘッダーとセルの共通設定 */
+.data-table th, 
+.data-table td {
+    border: 1px solid #333333; /* ここで枠線の太さと色を指定 */
+    padding: 12px;             /* 文字の周りの余白 */
+    text-align: left;          /* 文字を左寄せ */
+}
+
+/* ヘッダー（一番上の行）の色付け */
+.data-table th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+}
+
+/* 偶数行に背景色をつけて読みやすくする */
+.data-table tr:nth-child(even) {
+    background-color: #fafafa;
+}
+/*画像複数*/
+.image-container {
+    display: flex;       
+    justify-content: center; /* 中央に寄せる設定 */
+    gap: 20px;          /* 画像同士の隙間 */
+}
+.image-container figure {
+    width: 45%;
+    text-align: center;
+}
+
+.image-container figure img {
+    width: 100%;
+}
+/*スマホの時だけ画像縦*/
+@media (max-width: 600px) {
+    .image-container {
+        flex-direction: column; /* 縦並び変更 */
+        align-items: center;
+    }
+    .image-container img, .image-container figure {
+        width: 90%; /* 幅を広げて見やすく */
+    }
+}
+
+/* ページ内リンクでスルスル動くようにする */
+html {
+  scroll-behavior: smooth;
+}
+
+/* 目次全体の枠 */
+#toc-container {
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 50px;
+    margin: 20px 0;
+}
+
+/* クリックする見出し部分 */
+summary {
+    list-style: none; /* デフォルトの三角形を消したい場合 */
+    outline: none;
+    padding: 10px 10px;
+}
+
+/* summary（目次の見出し）の標準の三角を消す */
+summary {
+    list-style: none; /* Chrome, Firefox用 */
+    cursor: pointer;
+    font-weight: bold;
+    display: block;   /* 三角形の位置を安定させる */
+    position: relative;
+    padding-left: 25px; /* 三角形を表示するスペースを空ける */
+}
+
+/* Safari用三角消し */
+summary::-webkit-details-marker {
+    display: none;
+}
+
+/* 三角形（閉じた時） */
+summary::before {
+    content: "";
+    position: absolute;
+    left: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+    border-left: 10px solid #000000; /* 三角形の色（青） */
+    transition: transform 0.3s;      /* 回転をスムーズに */
+}
+
+/* detailsが開いた時の三角形の動き */
+details[open] summary::before {
+    transform: translateY(-50%) rotate(90deg); /* 90度回転して下を向く */
+}
+/* インデント設定 */
+#toc-container ul {
+    margin-top: 10px;
+}
+#toc-container ul ul {
+    margin-left: 20px;
+    list-style-type: circle;
+}
+#back-to-top {
+    position: fixed;        /* 画面の決まった位置に固定 */
+    bottom: 30px;           /* 下から30px */
+    right: 30px;            /* 右から30px */
+    width: 60px;            /* ボタンの幅 */
+    height: 60px;           /* ボタンの高さ */
+    background-color: #007bff; /* ボタン色 */
+    color: white;           /* 文字の色 */
+    text-decoration: none;  /* 下線を消す */
+    border-radius: 50%;     /* 丸いボタンにする */
+    display: flex;          /* 文字を真ん中に置くため */
+    align-items: center;    /* 垂直方向の真ん中 */
+    justify-content: center;/* 水平方向の真ん中 */
+    font-size: 14px;
+    font-weight: bold;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2); /* 浮いている風の影 */
+    z-index: 1000;          /* 他の要素より上に表示 */
+    transition: opacity 0.3s, transform 0.3s;
+}
+
+#back-to-top:hover {
+    background-color: #0056b3; /* ホバー時に少し暗く */
+    transform: translateY(-5px); /* 少し上に跳ねるアニメーション */
+}

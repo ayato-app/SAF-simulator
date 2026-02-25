@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>SAF Simulator</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<link rel="stylesheet" href="design.css">
+
+<style>
+/* シミュレーター専用デザイン（外部CSSを邪魔しない範囲に限定） */
+#map { height:400px; margin-top:20px; border:1px solid #ccc; border-radius: 8px; }
+canvas { margin-top:20px; max-width: 100%; }
+
+/* テーブルの見た目 */
+table { border-collapse: collapse; margin-top:20px; width:100%; background: white; }
+th, td { border:1px solid #ccc; padding:12px; text-align:center; }
+th { background:#f2f2f2; }
+
+/* 結果ボックス */
+.result-box { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-top: 20px; }
+</style>
+</head>
+<body>
+
+<div id="overlay" onclick="toggleMenu()"></div>
+<div id="menuBtn" onclick="toggleMenu()">☰ MENU</div>
+
+<div id="sideMenu">
+    <div class="close-area" onclick="toggleMenu()">× CLOSE</div>
+    <nav>
+        <ul>
+            <li><a href="index.html">HOME（研究の背景）</a></li>
+            <li><a href="simulator.html">SAFシミュレーター</a></li>
+            <li><a href="conclusion.html">考察・まとめ</a></li>
+            <li><a href="caution.html">シミュレーション注釈</a></li> 
+        </ul>
+    </nav>
+</div>
+
+<div class="content-wrapper">
+    <header>
+        <h1>SAFシミュレーター</h1>
+        <p>条件を入力して、CO<sub>2</sub>削減量とコストの変化をシミュレーションします。</p>
+    </header>
+
+    <main>
+    <div class="input-section">
+        <div class="input-group">
+            <label for="departure">出発地:</label>
+            <select id="departure">
+<option value="">選択してください</option>
+        
+        <optgroup label="国内（日本）">
+            <option value="HND">羽田空港 (HND)</option>
+            <option value="NRT">成田空港 (NRT)</option>
+            <option value="CTS">新千歳空港 (CTS)</option>
+            <option value="FUK">福岡空港 (FUK)</option>
+            <option value="AKJ">旭川空港 (AKJ)</option> 
+            <option value="HKD">函館空港 (HKD)</option>
+            <option value="ITM">伊丹空港 (ITM)</option>
+            <option value="UKB">神戸空港 (UKB)</option>
+            <option value="KIX">関西国際空港 (KIX)</option>
+            <option value="SDJ">仙台空港 (SDJ)</option>
+            <option value="OKA">那覇空港 (OKA)</option>
+            <option value="NGO">中部 セントレア (NGO)</option>
+            <option value="KMQ">小松空港 (KMQ)</option>
+            <option value="KMJ">熊本空港 (KMJ)</option>
+            <option value="KOJ">鹿児島空港 (KOJ)</option>
+        </optgroup>
+
+        <optgroup label="韓国">
+            <option value="ICN">仁川国際空港 (ICN)</option>
+            <option value="PUS">金海（釜山）国際空港 (PUS)</option>
+        </optgroup>
+
+        <optgroup label="中国">
+            <option value="PEK">北京首都国際空港 (PEK)</option>
+            <option value="PVG">上海浦東国際空港 (PVG)</option>
+        </optgroup>
+
+        <optgroup label="台湾">
+            <option value="TPE">台湾桃園国際空港 (TPE)</option>
+        </optgroup>
+
+        <optgroup label="香港">
+            <option value="HKG">香港国際空港 (HKG)</option>
+        </optgroup>
+
+        <optgroup label="マレーシア">
+            <option value="KUL">クアラルンプール国際空港 (KUL)</option>
+        </optgroup>
+
+        <optgroup label="インドネシア">
+            <option value="CGK">スカルノ・ハッタ国際空港 (CGK)</option>
+        </optgroup>
+
+        <optgroup label="タイ">
+            <option value="BKK">スワンナプーム国際空港 (BKK)</option>
+        </optgroup>
+
+        <optgroup label="ベトナム">
+            <option value="SGN">タンソンニャット国際空港 (SGN)</option>
+        </optgroup>
+
+        <optgroup label="アメリカ"> 
+            <option value="LAX">ロサンゼルス国際空港 (LAX)</option>
+            <option value="JFK">ジョン・F・ケネディ国際空港 (JFK)</option>
+            <option value="ATL">アトランタ国際空港 (ATL)</option>
+            <option value="SFO">サンフランシスコ国際空港 (SFO)</option>
+            <option value="DFW">ダラス・フォートワース国際空港 (DFW)</option>
+            <option value="ORD">シカゴ・オヘア国際空港 (ORD)</option>
+            <option value="GUM">アントニオ・Ｂ・ウォン・パット（グアム）国際空港 (GUM)</option>
+            <option value="HNL">ダニエル・Ｋ・イノウエ国際空港 (HNL)</option>
+        </optgroup>
+
+        <optgroup label="イギリス">
+            <option value="LHR">ヒースロー国際空港 (LHR)</option>
+        </optgroup>
+
+            <optgroup label="カナダ">
+            <option value="YYZ">トロント・ピアソン空港 (YYZ)</option>
+            <option value="YVR">バンクーバー国際空港 (YVR)</option>
+        </optgroup>
+        <optgroup label="フランス">
+            <option value="CDG">シャルル・ド・ゴール空港 (CDG)</option>
+        </optgroup>
+
+        <optgroup label="ドイツ">
+            <option value="FRA">フランクフルト・アム・マイン国際空港 (FRA)</option>
+        </optgroup>
+
+        <optgroup label="オランダ">
+            <option value="AMS">アムステルダム国際空港 (AMS)</option>
+        </optgroup>
+
+        <optgroup label="イタリア">
+            <option value="FCO">レオナルド・ダ・ヴィンチ国際空港 (FCO)</option>
+        </optgroup>
+
+        <optgroup label="フィンランド">
+            <option value="HEL">ヘルシンキ・ヴァンダー国際空港 (HEL)</option>
+        </optgroup>
+
+        <optgroup label="オーストラリア">
+            <option value="SYD">シドニー国際空港 (SYD)</option>
+        </optgroup>
+
+        <optgroup label="ニュージーランド">
+            <option value="AKL">オークランド国際空港 (AKL)</option>
+        </optgroup>
+
+        <optgroup label="インド">
+            <option value="DEL">インディラ・ガンディー国際空港 (DEL)</option>
+        </optgroup>
+
+        <optgroup label="メキシコ">
+            <option value="MEX">メキシコシティ国際空港 (MEX)</option>
+        </optgroup>
+
+        <optgroup label="アラブ首長国">
+            <option value="DXB">ドバイ国際空港 (DXB)</option>
+        </optgroup>
+
+        <optgroup label="カタール">
+            <option value="DOH">ドーハ・ハマド国際空港 (DOH)</option>
+        </optgroup>
+
+        <optgroup label="トルコ">
+            <option value="IST">イスタンブール空港 (IST)</option>
+        </optgroup>
+    </select>
+</div> <div class="input-group">
+    <label for="arrival">到着地:</label>
+    <select id="arrival">
+<option value="">選択してください</option>
+        
+        <optgroup label="国内（日本）">
+            <option value="HND">羽田空港 (HND)</option>
+            <option value="NRT">成田空港 (NRT)</option>
+            <option value="CTS">新千歳空港 (CTS)</option>
+            <option value="FUK">福岡空港 (FUK)</option>
+            <option value="AKJ">旭川空港 (AKJ)</option> 
+            <option value="HKD">函館空港 (HKD)</option>
+            <option value="ITM">伊丹空港 (ITM)</option>
+            <option value="UKB">神戸空港 (UKB)</option>
+            <option value="KIX">関西国際空港 (KIX)</option>
+            <option value="SDJ">仙台空港 (SDJ)</option>
+            <option value="OKA">那覇空港 (OKA)</option>
+            <option value="NGO">中部 セントレア (NGO)</option>
+            <option value="KMQ">小松空港 (KMQ)</option>
+            <option value="KMJ">熊本空港 (KMJ)</option>
+            <option value="KOJ">鹿児島空港 (KOJ)</option>
+        </optgroup>
+
+        <optgroup label="韓国">
+            <option value="ICN">仁川国際空港 (ICN)</option>
+            <option value="PUS">金海（釜山）国際空港 (PUS)</option>
+        </optgroup>
+
+        <optgroup label="中国">
+            <option value="PEK">北京首都国際空港 (PEK)</option>
+            <option value="PVG">上海浦東国際空港 (PVG)</option>
+        </optgroup>
+
+        <optgroup label="台湾">
+            <option value="TPE">台湾桃園国際空港 (TPE)</option>
+        </optgroup>
+
+        <optgroup label="香港">
+            <option value="HKG">香港国際空港 (HKG)</option>
+        </optgroup>
+
+        <optgroup label="マレーシア">
+            <option value="KUL">クアラルンプール国際空港 (KUL)</option>
+        </optgroup>
+
+        <optgroup label="インドネシア">
+            <option value="CGK">スカルノ・ハッタ国際空港 (CGK)</option>
+        </optgroup>
+
+        <optgroup label="タイ">
+            <option value="BKK">スワンナプーム国際空港 (BKK)</option>
+        </optgroup>
+
+        <optgroup label="ベトナム">
+            <option value="SGN">タンソンニャット国際空港 (SGN)</option>
+        </optgroup>
+
+        <optgroup label="アメリカ"> 
+            <option value="LAX">ロサンゼルス国際空港 (LAX)</option>
+            <option value="JFK">ジョン・F・ケネディ国際空港 (JFK)</option>
+            <option value="ATL">アトランタ国際空港 (ATL)</option>
+            <option value="SFO">サンフランシスコ国際空港 (SFO)</option>
+            <option value="DFW">ダラス・フォートワース国際空港 (DFW)</option>
+            <option value="ORD">シカゴ・オヘア国際空港 (ORD)</option>
+            <option value="GUM">アントニオ・Ｂ・ウォン・パット（グアム）国際空港 (GUM)</option>
+            <option value="HNL">ダニエル・Ｋ・イノウエ国際空港 (HNL)</option>
+        </optgroup>
+
+        <optgroup label="イギリス">
+            <option value="LHR">ヒースロー国際空港 (LHR)</option>
+        </optgroup>
+
+            <optgroup label="カナダ">
+            <option value="YYZ">トロント・ピアソン空港 (YYZ)</option>
+            <option value="YVR">バンクーバー国際空港 (YVR)</option>
+        </optgroup>
+        <optgroup label="フランス">
+            <option value="CDG">シャルル・ド・ゴール空港 (CDG)</option>
+        </optgroup>
+
+        <optgroup label="ドイツ">
+            <option value="FRA">フランクフルト・アム・マイン国際空港 (FRA)</option>
+        </optgroup>
+
+        <optgroup label="オランダ">
+            <option value="AMS">アムステルダム国際空港 (AMS)</option>
+        </optgroup>
+
+        <optgroup label="イタリア">
+            <option value="FCO">レオナルド・ダ・ヴィンチ国際空港 (FCO)</option>
+        </optgroup>
+
+        <optgroup label="フィンランド">
+            <option value="HEL">ヘルシンキ・ヴァンダー国際空港 (HEL)</option>
+        </optgroup>
+
+        <optgroup label="オーストラリア">
+            <option value="SYD">シドニー国際空港 (SYD)</option>
+        </optgroup>
+
+        <optgroup label="ニュージーランド">
+            <option value="AKL">オークランド国際空港 (AKL)</option>
+        </optgroup>
+
+        <optgroup label="インド">
+            <option value="DEL">インディラ・ガンディー国際空港 (DEL)</option>
+        </optgroup>
+
+        <optgroup label="メキシコ">
+            <option value="MEX">メキシコシティ国際空港 (MEX)</option>
+        </optgroup>
+
+        <optgroup label="アラブ首長国">
+            <option value="DXB">ドバイ国際空港 (DXB)</option>
+        </optgroup>
+
+        <optgroup label="カタール">
+            <option value="DOH">ドーハ・ハマド国際空港 (DOH)</option>
+        </optgroup>
+
+        <optgroup label="トルコ">
+            <option value="IST">イスタンブール空港 (IST)</option>
+        </optgroup>
+    </select>    
+</div>
+<div class="input-group">
+    <label for="aircraft">機材:</label>
+    <select id="aircraft">
+        <option value="">選択してください</option>
+    </select>
+</div>
+
+<div class="input-group">
+    <label>SAF混合率: <span id="blendValue">0</span>%</label><br>
+    <input type="range" id="blend" min="0" max="50" step="1" value="0">
+</div>
+
+<div class="input-group">
+    <label>搭乗率: <span id="loadValue">80</span>%</label><br>
+    <input type="range" id="loadFactor" min="5" max="100" step="1" value="80">
+</div>
+
+<div class="button-group">
+    <button id="calcBtn">計算を実行する
+    </button>
+    <button id="pdfBtn" style="background: #e67e22;">PDFレポート出力
+    </button>
+</div>
+
+<div id="outputArea">        <div id="conditionSummary"></div>
+        <div id="result">
+        </div>
+        <div id="chartButtons" style="margin-top:15px; display:none;">
+            <button id="barBtn" style="background: #3498db;">通常 vs SAF比較</button>
+            <button id="lineBtn" style="background: #3498db;">SAF混合率推移</button>
+        </div>
+        <canvas id="chart" width="400" height="200"></canvas>
+        
+        <div id="pdfGraphs" style="display:none; margin-top:20px;">
+            <h3>CO<sub>2</sub>比較グラフ</h3>
+            <canvas id="pdfBarChart" width="400" height="200"></canvas>
+                <h3>SAF混合率推移グラフ</h3>
+                <canvas id="pdfLineChart" width="400" height="200"></canvas>
+        </div>
+
+    <div id="map-container" style="display: none;">
+        <h3>フライトルート</h3>
+        <div id="map"></div>
+</div>
+</main>
+
+</div> <script>
+    function toggleMenu() {
+    const menu = document.getElementById("sideMenu");
+    const overlay = document.getElementById("overlay");
+    
+    if (menu.classList.contains("active")) {
+        menu.classList.remove("active");
+        overlay.setAttribute('style', 'display: none !important'); // 強制消去
+    } else {
+        menu.classList.add("active");
+        overlay.setAttribute('style', 'display: block !important'); // 強制消去
+    }
+}
+
+// ===== 空港データ（国内＋主要国際）=====
+const airports = {
+
+//日本
+AKJ:{name:"旭川 (AKJ)",lat:43.6708,lon:142.4470},
+HKD:{name:"函館 (HKD)",lat:41.7700,lon:140.8219},
+HND:{name:"羽田 (HND)",lat:35.553333,lon:139.78111},
+NRT:{name:"成田 (NRT)",lat:35.7767,lon:140.3186},
+ITM:{name:"伊丹 (ITM)",lat:34.791423,lon:135.44198},
+UKB:{name:"神戸 (UKB)",lat:34.6306,lon:135.2236},
+KIX:{name:"関西 (KIX)",lat:34.4347,lon:135.2440},
+CTS:{name:"新千歳 (CTS)",lat:42.7752,lon:141.6923},
+FUK:{name:"福岡 (FUK)",lat:33.5859,lon:130.4507},
+OKA:{name:"那覇 (OKA)",lat:26.2064,lon:127.6469},
+KOJ:{name:"鹿児島 (KOJ)",lat:31.8034,lon:130.7190},
+SDJ:{name:"仙台 (SDJ)",lat:38.135,lon:140.933},
+NGO:{name:"中部 セントレア (NGO)",lat:34.8584,lon:136.8050},
+KMJ:{name:"熊本 (KMJ)",lat:32.835,lon:130.859},
+KMQ:{name:"小松 (KMQ)",lat:36.4018,lon:136.4133},
+
+//国際
+LAX:{name:"ロサンゼルス (LAX)",lat:33.9416,lon:-118.4085},
+JFK:{name:"ニューヨーク (JFK)",lat:40.6413,lon:-73.7781},
+ATL:{name:"アトランタ (ATL)",lat:33.6367,lon:-84.4281},
+SFO:{name:"サンフランシスコ (SFO)",lat:37.6188,lon:-122.3754},
+DFW:{name:"ダラス (DFW)",lat:32.8972,lon:-97.0377},
+ORD:{name:"シカゴ (ORD)",lat:41.9786,lon:-87.9047},
+HNL:{name:"ホノルル (HNL)",lat:21.3245,lon:157.9251},
+GUM:{name:"グアム (GUM)",lat:13.4839,lon:144.7971},
+YYZ:{name:"トロント (YYZ)",lat:43.6772,lon:-79.6306},
+YVR:{name:"バンクーバー (YVR)",lat:49.1939,lon:-123.1840},
+LHR:{name:"ロンドン (LHR)",lat:51.4700,lon:-0.4543},
+CDG:{name:"パリ (CDG)",lat:49.0097,lon:2.5479},
+AMS:{name:"アムステルダム (AMS)",lat:52.3086,lon:4.7639},
+FCO:{name:"ローマ (FCO)",lat:41.7999,lon:12.2462},
+HEL:{name:"ヘルシンキ (HEL)",lat:60.31722,lon:24.9633},
+FRA:{name:"フランクフルト (FRA)",lat:50.0333,lon:8.5706},
+IST:{name:"イスタンブール (IST)",lat:41.2750,lon:28.7322},
+KUL:{name:"クアラルンプール (KUL)",lat:2.7456,lon:101.7100},
+SIN:{name:"シンガポール (SIN)",lat:1.3644,lon:103.9915},
+ICN:{name:"ソウル (ICN)",lat:37.4602,lon:126.4407},
+PUS:{name:"釜山 (PUS)",lat:35.1806,lon:128.9339},
+DXB:{name:"ドバイ (DXB)",lat:25.2528,lon:55.3644},
+CGK:{name:"ジャカルタ (CGK)",lat:-6.1256,lon:106.6560},
+DEL:{name:"デリー (DEL)",lat:28.5562,lon:77.1000},
+BKK:{name:"バンコク (BKK)",lat:13.6811,lon:100.7470},
+PEK:{name:"北京 (PEK)",lat:40.08011,lon:116.58455},
+PVG:{name:"上海 (PVG)",lat:31.1433,lon:121.8053},
+TPE:{name:"台北 (TPE)",lat:25.0764,lon:121.2239},
+HKG:{name:"香港 (HKG)",lat:22.3089,lon:113.9147},
+SGN:{name:"ホーチミン(SGN)",lat:10.8188,lon:106.6519},
+DOH:{name:"ドーハ (DOH)",lat:25.2731,lon:51.6081},
+MEX:{name:"メキシコシティ (MEX)",lat:19.4361,lon:-99.0719},
+AKL:{name:"メキシコシティ (MEX)",lat:-37.0120,lon:174.7863},
+SYD:{name:"シドニー (SYD)",lat:-33.9399,lon:151.1753}
+};
+
+// ===== 航空機データ（実運航平均）=====
+const aircraftData = {
+"B787":{fuel:10.5,seats:290,speed:910,range:14000},
+"B777":{fuel:17.5,seats:360,speed:905,range:13600},
+"B767":{fuel:11.8,seats:220,speed:850,range:11000},
+"B747":{fuel:20.0,seats:410,speed:915,range:14300},
+"B737":{fuel:4.8,seats:165,speed:830,range:5700},
+"A380":{fuel:28.5,seats:525,speed:900,range:15000},
+"A350":{fuel:11.2,seats:320,speed:900,range:15000},
+"A340":{fuel:16.2,seats:290,speed:870,range:13500},
+"A330":{fuel:12.5,seats:300,speed:870,range:11700},
+"A330neo":{fuel:10.8,seats:300,speed:870,range:13300},
+"A321":{fuel:6.2,seats:200,speed:830,range:5900},
+"A321neo":{fuel:5.0,seats:200,speed:830,range:7400},
+"A321XLR":{fuel:4.6,seats:200,speed:830,range:8700},
+"A320":{fuel:5.3,seats:160,speed:830,range:6100},
+"A320neo":{fuel:4.3,seats:160,speed:830,range:6300},
+"A319":{fuel:4.5,seats:130,speed:830,range:6900},
+"A318":{fuel:4.2,seats:110,speed:830,range:5700},
+"A220":{fuel:3.6,seats:140,speed:830,range:6300},
+"E190":{fuel:3.3,seats:100,speed:830,range:4500},
+"E190-E2":{fuel:2.8,seats:100,speed:830,range:5300},
+"E175":{fuel:2.6,seats:76,speed:830,range:4000},
+"E170":{fuel:2.4,seats:70,speed:830,range:3900},
+"ATR42-600":{fuel:1.4,seats:48,speed:530,range:1300},
+"ATR72-600":{fuel:1.8,seats:70,speed:510,range:1500},
+"DHC-8-Q400":{fuel:2.3,seats:74,speed:660,range:2000},
+"CRJ-700":{fuel:2.5,seats:70,speed:830,range:2500}
+};
+
+// ===== DOM =====
+const depSel=document.getElementById("departure");
+const arrSel=document.getElementById("arrival");
+const airSel=document.getElementById("aircraft");
+const blend=document.getElementById("blend");
+const load=document.getElementById("loadFactor");
+const blendValue=document.getElementById("blendValue");
+const loadValue=document.getElementById("loadValue");
+const resultDiv = document.getElementById("result");
+const resultTableDiv=document.getElementById("resultTable");
+const calcBtn=document.getElementById("calcBtn");
+const target = document.getElementById('map-container');
+const pdfBtn=document.getElementById("pdfBtn");
+pdfBtn.style.display = "none";
+
+blend.oninput=()=>blendValue.textContent=blend.value;
+load.oninput=()=>loadValue.textContent=load.value;
+
+// ===== 機材カテゴリ分け =====
+
+const aircraftCategories = {
+    "小型機": [
+        "ATR42-600","ATR72-600","E170","E175","E190","E190-E2","DHC-8-Q400","CRJ-700"
+    ],
+    "中型機": [
+        "B737","A320","A320neo","A321","A321neo","A321XLR","A319","A318","A220"
+    ],
+    "大型機": [
+        "B767","B777","B787","B747","A330","A330neo","A340","A350","A380"
+    ]
+};
+
+for(let category in aircraftCategories){
+
+    let group = document.createElement("optgroup");
+    group.label = category;
+
+    aircraftCategories[category].forEach(plane=>{
+        if(aircraftData[plane]){
+            let option = document.createElement("option");
+            option.value = plane;
+            option.textContent = plane;
+            group.appendChild(option);
+        }
+    });
+
+    airSel.appendChild(group);
+}
+
+// ===== 距離計算 =====
+function calcDistance(lat1,lon1,lat2,lon2){
+const R=6371;
+const dLat=(lat2-lat1)*Math.PI/180;
+const dLon=(lon2-lon1)*Math.PI/180;
+const a=Math.sin(dLat/2)**2+
+Math.cos(lat1*Math.PI/180)*
+Math.cos(lat2*Math.PI/180)*
+Math.sin(dLon/2)**2;
+return 2*R*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+// ===== 地図初期化 =====
+let chart; 
+let map = L.map('map').setView([20,120],3);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+maxZoom:18
+}).addTo(map);
+
+let routeLine;
+
+// ===== 計算処理 =====
+calcBtn.onclick = function(){
+    
+    let dep = depSel.value;	
+    let arr = arrSel.value;
+    let aircraftType = airSel.value;
+
+    // 出発地と到着地が未選択なら何もしない
+    if(!dep || !arr || !aircraftType) {
+        alert("出発地、到着地、機材をすべて選択してください");
+        return;
+    }
+
+    if(dep === arr){
+        resultDiv.innerHTML = "同一空港は不可";
+        pdfBtn.style.display = "none";
+        return;
+    }
+
+
+let blendRate = blend.value / 100;
+let loadRate = load.value / 100;
+
+let distance = calcDistance(
+    airports[dep].lat, airports[dep].lon,
+    airports[arr].lat, airports[arr].lon
+);
+
+// ===== 航続距離チェック =====
+let maxRange = aircraftData[aircraftType].range;
+if(distance > maxRange){
+    resultDiv.innerHTML = `
+    <div style="color:red; font-weight:bold;">
+        ⚠ 航続距離オーバー<br>
+        この機材の最大航続距離は ${maxRange} km です。
+    </div>
+    `;
+    pdaBtn.style.display = "none"
+    document.getElementById("chartButtons").style.display = "none";
+    return;
+}
+
+// ===== 飛行時間計算 =====
+let cruiseSpeed = aircraftData[aircraftType].speed;
+let flightTime = distance / cruiseSpeed;
+
+let flightHours = Math.floor(flightTime);
+let flightMinutes = Math.round((flightTime - flightHours) * 60);
+
+// ===== 燃料・CO2計算 =====
+let fuelPerKm = aircraftData[aircraftType].fuel;
+let seats = aircraftData[aircraftType].seats;
+let passengers = Math.round(seats * loadRate);
+let loadPercent = Math.round(loadRate * 100);
+
+let totalFuel = distance * fuelPerKm;
+
+let normalCO2 = totalFuel * 3.16;  // ICAO係数
+let reducedCO2 = normalCO2 * blendRate * 0.7;
+let safCO2 = normalCO2 - reducedCO2;
+let normalCo2PerPassenger = passengers > 0
+    ? normalCO2 / passengers
+    : 0;
+let co2PerPassenger = passengers > 0 
+    ? safCO2 / passengers 
+    : 0;
+let extraCost = totalFuel * blendRate * 300;
+let perPassengerCost = extraCost / passengers;
+let reductionRate = normalCO2 > 0
+    ? ((normalCO2 - safCO2) / normalCO2) * 100
+    : 0;
+let perPassengerReductionRate = normalCo2PerPassenger > 0
+    ? ((normalCo2PerPassenger - co2PerPassenger) / normalCo2PerPassenger) * 100
+    : 0;
+// ===== SAF連続シミュレーション =====
+let safRates = [];
+let safCO2List = [];
+
+for(let i=0;i<=50;i+=5){
+
+    let rate = i / 100;
+    let reduced = normalCO2 * rate * 0.7;
+    let resultCO2 = normalCO2 - reduced;
+
+    safRates.push(i);
+    safCO2List.push(resultCO2);
+}
+window.graphData = {
+    normalCO2: normalCO2,
+    safCO2: safCO2,
+    safRates: safRates,
+    safCO2List: safCO2List
+};
+drawBarChart();
+let conditionHTML = `
+<div style="margin-bottom:15px; padding:10px; border:1px solid #ccc;">
+<h3>シミュレーション条件</h3>
+<table style="width:100%; border-collapse:collapse;">
+<tr><th>出発地</th><td>${airports[dep].name}</td></tr>
+<tr><th>到着地</th><td>${airports[arr].name}</td></tr>
+<tr><th>機材</th><td>${aircraftType}</td></tr>
+<tr><th>搭乗率</th><td>${loadValue.textContent}%</td></tr>
+<tr><th>SAF混合率</th><td>${blendValue.textContent}%</td></tr>
+</table>
+</div>
+`;
+
+document.getElementById("conditionSummary").innerHTML = conditionHTML;
+// ===== 機材情報HTML =====
+let aircraftInfoHTML = `
+<div class="aircraft-info">
+    <h3>✈ 選択機材スペック</h3>
+    <table>
+        <tr><th>機材</th><td>${aircraftType}</td></tr>
+        <tr><th>巡航速度</th><td>${cruiseSpeed} km/h</td></tr>
+        <tr><th>最大航続距離</th><td>${maxRange} km</td></tr>
+        <tr><th>座席数</th><td>${passengers}席 / ${seats}席</td></tr>
+        <tr><th>座席利用率</th><td>${loadPercent}%</td></tr>
+        <tr><th>燃料消費量(kg/km)</th><td>${fuelPerKm} kg/km</td></tr>
+    </table>
+</div>
+`;
+
+// ===== 結果表示 =====
+resultDiv.innerHTML =
+aircraftInfoHTML +
+`
+<div class="result-box">
+<h3>計算結果</h3>
+<table border="1" style="width:100%; border-collapse:collapse;">
+<tr><th>飛行距離</th><td>${distance.toFixed(0)} km</td></tr>
+<tr><th>飛行時間</th><td>${flightHours}時間 ${flightMinutes}分</td></tr>
+<tr><th>総燃料消費</th><td>${totalFuel.toFixed(0)} kg</td></tr>
+<tr><th>通常CO<sub>2</sub>排出量</th><td>${normalCO2.toFixed(0)} kg</td></tr>
+<tr><th>CO<sub>2</sub>削減率</th><td>${reductionRate.toFixed(1)} %</td></tr>
+<tr><th>SAF使用時CO<sub>2</sub></th><td>${safCO2.toFixed(0)} kg</td></tr>
+<tr>
+<th>1人あたりCO<sub>2</sub>排出量（SAF未使用）</th>
+<td>${normalCo2PerPassenger.toFixed(1)} kg</td>
+</tr>
+
+<tr>
+<th>1人あたりCO<sub>2</sub>排出量（SAF使用後）</th>
+<td>${co2PerPassenger.toFixed(1)} kg</td>
+</tr>
+<tr>
+<th>1人あたりCO<sub>2</sub>削減率</th>
+<td>${perPassengerReductionRate.toFixed(1)} %</td>
+</tr>
+<tr><th>1人あたり追加運賃</th><td>${perPassengerCost.toFixed(0)} 円</td></tr>
+</table>
+</div>
+`;
+
+// ===== グラフ描画 =====
+// ===== グラフ切替関数 =====
+
+function drawBarChart(){
+
+if(!window.graphData) return;
+
+if(chart) chart.destroy();
+
+const ctx = document.getElementById("chart").getContext("2d");
+
+chart = new Chart(ctx,{
+    type:"bar",
+    data:{
+        labels:["通常","SAF使用"],
+        datasets:[{
+            label:"総CO2排出量 (kg)",
+            data:[window.graphData.normalCO2, window.graphData.safCO2]
+        }]
+    },
+    options:{
+        responsive:true,
+        scales:{
+            y:{beginAtZero:true}
+        }
+    }
+});
+}
+
+
+function drawLineChart(){
+
+if(!window.graphData) return;
+
+if(chart) chart.destroy();
+
+const ctx = document.getElementById("chart").getContext("2d");
+
+chart = new Chart(ctx,{
+    type:"line",
+    data:{
+        labels:window.graphData.safRates,
+        datasets:[{
+            label:"SAF混合率別CO2排出量 (kg)",
+            data:window.graphData.safCO2List,
+            fill:false
+        }]
+    },
+    options:{
+        responsive:true,
+        scales:{
+            y:{beginAtZero:false}
+        }
+    }
+});
+}
+document.getElementById("barBtn").onclick = drawBarChart;
+document.getElementById("lineBtn").onclick = drawLineChart;
+
+if (target) {
+        target.style.display = 'block';
+    }
+
+    // setTimeout書き方修正
+    setTimeout(function() {
+        if (typeof map !== 'undefined') {
+            map.invalidateSize(); // 表示直後のズレ修正
+            
+            // 地図描画
+            if(routeLine) map.removeLayer(routeLine);
+
+            routeLine = L.polyline([
+                [airports[dep].lat, airports[dep].lon],
+                [airports[arr].lat, airports[arr].lon]
+            ], {color: "blue"}).addTo(map);
+
+            map.fitBounds(routeLine.getBounds());
+        }
+    }, 100);
+// ===== PDFボタン有効化 =====
+pdfBtn.style.display = "inline-block";
+document.getElementById("chartButtons").style.display = "block";
+};
+// ===== PDF出力 =====
+pdfBtn.onclick = async function(){
+
+if(!window.graphData){
+    alert("先に計算を実行してください");
+    return;
+}
+
+const pdf = new window.jspdf.jsPDF({
+    orientation: "portrait",
+    unit: "mm",
+    format: "a4"
+});
+
+// ボタン非表示
+document.getElementById("barBtn").style.display="none";
+document.getElementById("lineBtn").style.display="none";
+
+// ===== PDF用グラフ表示 =====
+const pdfGraphs = document.getElementById("pdfGraphs");
+pdfGraphs.style.display="block";
+
+// DOM反映待ち
+await new Promise(resolve => setTimeout(resolve, 500));
+
+
+// ===== PDF用グラフ生成 =====
+const ctxBar = document.getElementById("pdfBarChart").getContext("2d");
+const ctxLine = document.getElementById("pdfLineChart").getContext("2d");
+
+if(window.pdfBar) window.pdfBar.destroy();
+if(window.pdfLine) window.pdfLine.destroy();
+
+window.pdfBar = new Chart(ctxBar,{
+    type:"bar",
+    data:{
+        labels:["通常","SAF使用"],
+        datasets:[{
+            label:"総CO2排出量 (kg)",
+            data:[window.graphData.normalCO2, window.graphData.safCO2]
+        }]
+    },
+    options:{ responsive:true }
+});
+
+window.pdfLine = new Chart(ctxLine,{
+    type:"line",
+    data:{
+        labels:window.graphData.safRates,
+        datasets:[{
+            label:"SAF混合率別CO2排出量 (kg)",
+            data:window.graphData.safCO2List,
+            fill:false
+        }]
+    },
+    options:{ responsive:true }
+});
+
+// グラフ描画待ち
+await new Promise(resolve => setTimeout(resolve, 1000));
+
+
+// ==========================
+// 1ページ
+// ==========================
+pdf.setFontSize(22);
+pdf.text("SAF Simulation Report",105,40,{align:"center"});
+pdf.addPage();
+
+
+// ==========================
+// 2ページ 結果
+// ==========================
+const resultArea = document.getElementById("result");
+
+const resultCanvas = await html2canvas(resultArea, {
+    useCORS: true,
+    scale: 2,           // 画質を上げる
+    width: 1000,        // 内部的に1000pxの幅としてレンダリングする
+    windowWidth: 1000   // 画面幅が狭くても1000pxあるものとして計算する
+});
+
+// PDFに貼り付け（190はPDFの横幅。高さは0にすると自動調整される）
+pdf.addImage(resultCanvas.toDataURL("image/png"), "PNG", 10, 10, 190, 0);
+pdf.addPage();
+
+
+// ==========================
+// 3ページ グラフ
+// ==========================
+const graphCanvas = await html2canvas(
+    pdfGraphs,
+    {useCORS:true}
+);
+pdf.addImage(graphCanvas.toDataURL("image/png"),"PNG",10,10,190,0);
+
+pdf.save("SAF_simulation_report.pdf");
+
+// 元に戻す
+pdfGraphs.style.display="none";
+document.getElementById("barBtn").style.display="inline-block";
+document.getElementById("lineBtn").style.display="inline-block";
+
+};
+</script>
+</body>
+</html>
+</body>

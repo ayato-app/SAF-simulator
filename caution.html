@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>シミュレーター注釈 - SAF研究</title>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="stylesheet" href="design.css">
+</head>
+<body>
+    <div id="overlay" onclick="toggleMenu()"></div>
+    <div id="menuBtn" onclick="toggleMenu()">☰ MENU</div>
+    <div id="sideMenu">
+        <div class="close-area" onclick="toggleMenu()">× CLOSE</div>
+        <nav>
+            <ul>
+                <li><a href="index.html">HOME（研究の背景）</a></li>
+                <li><a href="simulator.html">SAFシミュレーター</a></li>
+                <li><a href="conclusion.html">考察・まとめ</a></li>
+                <li><a href="caution.html">シミュレーション注釈</a></li> 
+            </ul>
+        </nav>
+    </div>
+
+<a href="#" id="back-to-top">▲ TOP</a>
+
+    <div class="content-wrapper">
+        <header>
+            <h1>シミュレーターの前提条件と計算式</h1>
+        </header>
+
+<div id="toc-container">
+    <details open> <summary style="cursor: pointer; font-weight: bold; font-size: 1.2em;">    <ul>
+        目次
+    </summary>
+    <li><a href="#about-saf">1. SAFとは</a></li>
+    <li>
+        <a href="#calc-logic">2. 排出量の計算根拠</a></li>
+    <ul>
+            <li><a href="#calc-logic-1">2-1. 2点間の距離（大圏距離）</a></li>
+            <li><a href="#calc-logic-2">2-2. 飛行時間</a></li>
+            <li><a href="#calc-logic-3">2-3. 総燃料消費量</a></li>
+            <li><a href="#calc-logic-4">2-4.  CO<sub>2</sub>排出量</a></li>
+            <li><a href="#calc-logic-5">2-5. SAF導入による削減量</a></li>
+            <li><a href="#calc-logic-6">2-6. SAF使用時の削減率</a></li>
+            <li><a href="#calc-logic-7">2-7. SAF未利用時の1人あたりのCO<sub>2</sub>排出量</a></li>
+            <li><a href="#calc-logic-8">2-8. 搭乗者数の算出</a></li>
+            <li><a href="#calc-logic-9">2-9. 一人当たりの追加運賃</a></li>
+            <li><a href="#calc-logic-10">2-10. SAF混合率の違いで削減可能なCO<sub>2</sub>量を示すモデル</a></li>
+    </ul>
+    </li>
+</ul>
+</details>
+</div>
+
+        <main>
+            <section>
+                <h2 id="about-saf">1. 使用機材の詳細情報</h2>
+                <p>本シミュレーターで選択可能な機材に派生型がある場合、以下の機材を基準にしています。</p>
+                <table class="data-table">
+        <tr>
+            <th> 表示形式</th>
+            <th>基準機材</th>
+            <th>選定理由</th>
+        </tr>
+        <tr>
+            <td><strong>B787</strong></td>
+            <td>B787-9</td>
+            <td>現在最も普及しているため</td>
+        </tr>
+        <tr>
+            <td><strong>B777</strong></td>
+            <td>B777-300ER</td>
+            <td>日本の航空会社でも長らく主力だった長距離機体だから。</td>
+        </tr>
+        <tr>
+            <td><strong>B767</strong></td>
+            <td>B767-300ER</td>
+            <td>中距離路線の定番であり、多くの派生型がある中で最も標準的だから</td>
+        </tr>
+        <tr>
+            <td><strong>B747</strong></td>
+            <td>B747-8</td>
+            <td>「ジャンボ」の最終進化系だから。</td>
+        </tr>
+        <tr>
+            <td><strong>B737</strong></td>
+            <td>B737-800</td>
+            <td>世界で最も飛んでいる小型機の一つであるから。</td>
+        </tr>
+        <tr>
+            <td><strong>A350</strong></td>
+            <td>a350-900</td>
+            <td>世界中で近年飛行機体が増加しておりデータが豊富にあるため。</td>
+        </tr>
+        <tr>
+            <td><strong>A340</strong></td>
+            <td>A340-300</td>
+            <td>現在は引退が進んでいるが、A340のなかで標準的なサイズの機体だから</td>
+        </tr>
+        <tr>
+            <td><strong>A330</strong></td>
+            <td>A330-300</td>
+            <td>中距離・高需要路線の定番だから。</td>
+        </tr>
+        <tr>
+            <td><strong>A330neo</strong></td>
+            <td>A330-900</td>
+            <td>A330のエンジン換装型であり。燃費効率が向上しているから。</td>
+        </tr>
+        <tr>
+            <td><strong>A220</strong></td>
+            <td>A220-300</td>
+            <td>1席あたりの燃費効率が非常に高いから。</td>
+        </tr>
+    </table>
+            </section>
+
+            <section>
+    <h2 id="calc-logic">2. 本シミュレーターで使用した計算式</h2>
+        <h3 id="calc-logic-1">①2点間の距離（大圏距離）</h3>
+        <p>出発地と目的地の緯度経度から、ハバーサイン（Haversine）公式を用いて飛行距離を算出しています。</p>
+
+        <div class="formula-box">
+        $$
+        \begin{aligned}
+        a &= \sin^2\left(\frac{\Delta \phi}{2}\right) + \cos(\phi_1)\cos(\phi_2)\sin^2\left(\frac{\Delta \lambda}{2}\right) \\
+        d &= 2R \cdot \operatorname{atan2}\left(\sqrt{a}, \sqrt{1-a}\right)
+        \end{aligned}
+        $$
+    </div>
+
+            <h4>変数の定義</h4>
+            <ul>
+                <li><strong>\(R\):</strong> 地球の平均半径= \(6,371 \, \text{km}\)</li>
+                <li><strong>\(\phi_1\):</strong> 出発地緯度 (ラジアン)</li>
+                <li><strong>\(\phi_2\):</strong> 目的地の緯度 (ラジアン)</li>
+                <li><strong>\(\lambda_1\):</strong> 出発地の経度 (ラジアン)</li>
+                <li><strong>\(\lambda_2\):</strong> 到着地の経度 (ラジアン)</li>
+                <li><strong>\(d\):</strong> 2点間の距離 (km)</li>
+                <li><strong>\(\Delta \phi\):</strong> 緯度の差 (\(\phi_2 - \phi_1\))</li>
+                <li><strong>\(\Delta \lambda\):</strong> 経度の差 (\(\lambda_2 - \lambda_1\))</li>
+            </ul>
+    <div class="source-box">
+        <strong>データ出典：</strong>
+        <ul>
+            <li><strong>ICAO:</strong> Doc 4444</li>
+            <li>航空航法学（天測航法理論）</li>
+        </ul>
+    </div>
+    
+        <h3 id="calc-logic-2">②飛行時間</h3>
+        <p>シミュレーションにおける飛行時間は、以下の簡略化された数式を用いて推定しています。</p>
+
+            <div class="formula-box">
+            $$ \text{飛行距離} = \frac{\text{大圏距離}}{\text{巡航速度}} $$
+            </div>
+
+            前述のハバーサイン公式で求めた大圏距離。
+            <p>※実際の飛行では、離着陸時の加速・減速や風の影響（偏西風・ジェット気流など）があるが、本シミュレーションでは計算を簡略化するため一定の巡航速度を適用しています。</p>
+
+
+    <h3 id="calc-logic-3">③総燃料消費量</h3>
+    <p>本シミュレーションでは、簡略化した燃料消費モデルを使用しています。</p>
+
+    <div class="formula-box">
+        $$ \text{総燃料 (kg)} = \text{距離 (km)} \times \text{燃料消費量 (kg/km)} $$
+    </div>
+
+    <h4>計算の前提と制約事項</h4>
+    <p>実際の航空運航（ICAO Annex 6：国際民間航空条約 附属書6）では、安全確保のために以下の多層的な燃料搭載が義務付けられています。</p>
+    
+    <div class="formula-box">
+        $$ \text{総燃料} = \text{地上用燃料} + \text{巡航燃料} + \text{補正燃料} + \text{非常用燃料} + \text{最終予備燃料} $$
+    </div>
+
+    <table class="data-table">
+        <tr>
+            <th>燃料項目</th>
+            <th>内容</th>
+        </tr>
+        <tr>
+            <td><strong>地上用燃料</strong></td>
+            <td>離陸前の地上走行で消費する燃料</td>
+        </tr>
+        <tr>
+            <td><strong>巡航燃料</strong></td>
+            <td>本シミュレーターの対象である、離陸から着陸までに消費する燃料</td>
+        </tr>
+        <tr>
+            <td><strong>補正燃料</strong></td>
+            <td>予期せぬ風の変化や経路変更に備える補正燃料（一般的に5%ほど）</td>
+        </tr>
+        <tr>
+            <td><strong>非常用燃料</strong></td>
+            <td>目的地に着陸できない場合に代替空港へ向かうための燃料</td>
+        </tr>
+        <tr>
+            <td><strong>最終予備燃料</strong></td>
+            <td>上空で30分間待機できるための最低限の予備燃料</td>
+        </tr>
+    </table>
+
+    <div class="info-note">
+        <p>注： 本研究のシミュレーターでは、SAF導入による環境負荷低減の傾向を可視化することを主眼としているため、計算の簡略化として巡航燃料のみをモデル化しています。</p>
+    </div>
+
+    <h3 id="calc-logic-4">④CO<sub>2</sub>排出量</h3>
+    <p>燃焼によるCO<sub>2</sub>排出量の計算には、国際基準に基づく排出係数3.16を使用しています。</p>
+
+    <div class="formula-box">
+        $$ \text{CO}_2 排出量 (kg) = \text{燃料 (kg)} \times 3.16 $$
+    </div>
+
+    <h4>係数「3.16」の意味</h4>
+    <p>
+        ジェット燃料（ケロシン）1kgを燃焼させると、約3.16kgのCO<sub>2</sub>が発生します。
+        燃料の質量よりも排出されるCO<sub>2</sub>の質量が重くなるのは、燃焼の過程で燃料中の炭素（C）が空気中の酸素（O\(_2\)）と結合するためです。
+    </p>
+
+    <div class="source-box">
+        <strong>データ出典：</strong>
+        <ul>
+            <li><strong>ICAO:</strong> Carbon Emissions Calculator Methodology</li>
+            <li><strong>IPCC:</strong> 2006 Guidelines for National Greenhouse Gas Inventories</li>
+        </ul>
+    </div>
+
+    <h3 id="calc-logic-5">⑤SAF導入による削減量</h3>
+    <p>SAF（持続可能な航空燃料）の導入によるCO<sub>2</sub>削減効果は、以下の2段階の数式で算出しています。</p>
+
+    <div class="formula-box">
+        $$ \text{CO}_2 削減量= \text通常{CO}_2量 \times \text{SAF混合率} \times 0.7 $$
+        $$ \text{SAF使用時のCO}_2排出量 = \text{未使用時のCO}_2排出量 - \text{SAF使用で削減された CO}_2量 $$
+    </div>
+
+    <h4>係数「0.7」の意味と根拠</h4>
+    <p>
+        本モデルでは、SAFの削減率を70%（0.7）と設定しています。
+        これは、SAFの原料（廃食油やバイオマス）が成長過程で吸収したCO<sub>2</sub>を差し引く「ライフサイクル評価（LCA）」において、従来のジェット燃料比で最大70%〜80%の削減が可能という一般的な指標に基づいています。
+    </p>
+
+    <div class="source-box">
+        <strong>データ出典：</strong>
+        <ul>
+            <li><strong>IATA:</strong> SAF Factsheet</li>
+            <li><strong>ICAO:</strong> LTAG (Long-Term Aspirational Goal) Report</li>
+        </ul>
+    </div>
+
+
+    <h3 id="calc-logic-6">⑥SAF使用時の削減率</h3>
+    <p>通常の燃料と比較して、SAF導入後にどれだけCO<sub>2</sub>が削減されたかを以下の式で算出しています。</p>
+
+    <div class="formula-box">
+        $$ \text{削減率 (%)} = \frac{\text{元の排出量} - \text{SAF導入後の排出量}}{\text{元の排出量}} \times 100 $$
+    </div>
+
+    <p>この式は、「（元の排出量 - 削減後の排出量）÷ 元の排出量」という標準的な割合の計算に基づいています。</p>
+    <p>シミュレーターの結果表示において、環境負荷低減の度合いを直感的に理解するための指標として使用しています。</p>
+
+    <h3 id="calc-logic-7">⑦SAF未利用時の1人あたりのCO<sub>2</sub>排出量</h3>
+    <p>機体全体の排出量を搭乗人数で割り、1人あたりの環境負荷を算出します。</p>
+
+    <div class="formula-box">
+        $$ \text{1人あたりのCO}_2 \text{排出量} = \frac{\text{総CO}_2排出量}{\text{搭乗者数}} $$
+    </div>
+
+    <h4>単位と指標：kgCO₂ / 搭乗者（pax）</h4>
+    <p>
+        航空分野の環境評価では、「kgCO₂ / 搭乗者（pax）」 という単位が基本指標として用いられます。
+    </p>
+
+    <h3 id="calc-logic-8">⑧搭乗者数の算出</h3>
+    <p>機体に搭乗している乗客数は、機材の総座席数に「有償座席利用率」を掛けて算出しています。</p>
+
+    <div class="formula-box">
+        $$ \text{搭乗者数} = \text{総座席数} \times \text{有償座席利用率} $$
+    </div>
+
+    <h4>用語の定義と出典</h4>
+    <ul>
+        <li><strong>総座席数:</strong> 選択した機種のおける座席数。</li>
+        <li><strong>有償座席利用率:</strong> 実際に座席がどれだけ埋まっているかを示す指標。
+        <p> ※世界的な平均値として、パンデミック前後の傾向を含め有償座席利用率は80%〜85%前後が一般的な指標となっています。</p>
+        </li>
+    </ul>
+
+    <div class="source-box">
+        <strong>データ出典：</strong>
+        <ul>
+            <li><strong>IATA:</strong> World Air Transport Statistics</li>
+            <li><strong>ICAO:</strong> Annual Report (Economic Development of Air Transport)</li>
+        </ul>
+    </div>
+
+    <h3 id="calc-logic-9">⑨1人あたりのSAF追加運賃</h3>
+    <p>SAF導入に伴う燃料コストの増加分を、搭乗者全員で等しく負担したと仮定した場合の1人あたりの追加費用を算出します。</p>
+
+    <div class="formula-box">
+        $$ \text{一人あたりの追加運賃} = \frac{\text{SAF導入による総追加費用}}{\text{乗客数}} $$
+    </div>
+
+    <h4>計算の考え方</h4>
+    <ul>
+        <li><strong>SAFの追加コスト:</strong> 従来のジェット燃料とSAFの価格差に基づいた、フライトの総コスト増加分。</li>
+        <li><strong>搭乗者数:</strong> 前述の「総座席数 × 有償座席利用率」で算出された実際の乗客数。</li>
+    </ul>
+    
+    <p>
+        この指標は、持続可能な航空運航を実現するために、消費者が直接的に負担する際の目安となる金額（SAFサーチャージ等）をシミュレートするために使用されます。
+    </p>
+
+    <h3 id="calc-logic-10">⑩SAF混合率の違いで削減可能なCO<sub>2</sub>量を示すモデル</h3>
+    <p>SAFの混合率を連続的に変化させた場合のCO<sub>2</sub>排出量は、以下の一次関数に基づいて算出されます。</p>
+
+    <div class="formula-box">
+        $$ \text{CO}_2(x) = \text{SAF未使用時の CO}_2排出量 - (\text{SAF未使用時のCO}_2排出量 \times x \times 0.7) $$
+        <p style="font-size: 0.9em; margin-top: 10px;">
+            （ただし、\( 0 \le x \le 0.5 \) とする）
+        </p>
+    </div>
+
+    <h4>モデルの解説</h4>
+    <ul>
+        <li><strong>\(x\):</strong> SAFの混合率（0.0 〜 0.5 / 0% 〜 50%）。</li>
+        <li><strong>範囲制限:</strong> 現在の国際的な技術規格（ASTM D7566）において、既存機材で安全に使用できる最大混合率が50%（0.5）であるため、この範囲をシミュレーションの有効値としています。</li>
+    </ul>
+
+    <div class="info-note">
+        <p><strong>グラフの特性：</strong> この式は切片を \(\text{SAF未使用時のCO}_2排出量\) とし、傾きを \(-(\text{SAF未使用時の CO}_2排出量 \times 0.7)\) とする右下がりの直線を描きます。<br>
+        つまり混合率を上げるほど、排出量が一定の割合で減少することを示しています。</p>
+    </div>
+
+
+</section>
+
+    <script>
+    function toggleMenu() {
+    const menu = document.getElementById("sideMenu");
+    const overlay = document.getElementById("overlay");
+    
+    if (menu.classList.contains("active")) {
+        menu.classList.remove("active");
+        overlay.setAttribute('style', 'display: none !important'); // 強制的に消す
+    } else {
+        menu.classList.add("active");
+        overlay.setAttribute('style', 'display: block !important'); // 強制的に出す
+    }
+}
+    </script>
+<script>
+// ボタンの要素取得（ハイフンなしの変数名にする）
+const backToTopBtn = document.getElementById('back-to-top');
+
+if (backToTopBtn) {
+    // 最初はボタンを隠しておく
+    backToTopBtn.style.display = 'none';
+
+    // クリック時の処理
+    backToTopBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    });
+
+    // スクロール量に合わせてボタンを出したり消したり
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 500) { 
+            backToTopBtn.style.display = 'flex';
+        } else {
+            backToTopBtn.style.display = 'none';
+        }
+    });
+}
+
+// 2. その他のページ内リンク（目次など）をスルスル動かす設定
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+        // トップに戻るボタン（href="#"）以外の処理
+        if (this.getAttribute('href') !== '#') {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if(target) {
+                target.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+    });
+});
+</script></body>
+</html>
