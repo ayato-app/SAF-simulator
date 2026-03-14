@@ -87,8 +87,8 @@ h1, h2 {
     padding-left: 15px;
 }
 
-/* --- スマホ・半画面・ウィンドウを細くした時の設定（768px以下） --- */
-@media (max-width: 768px) {
+/* --- スマホ・半画面・ウィンドウを細くした時の設定（925px以下） --- */
+@media (max-width: 925px) {
     .content-wrapper {
         margin-left: 0 !important;
         padding: 20px !important; /* PC用のpadding-leftをリセット */
@@ -169,6 +169,14 @@ button:hover { background: #219150; }
     display: flex;
     flex-direction: column; /* 縦並びにしてスッキリ */
     align-items: flex-start;
+}
+input[type="number"] {
+    width: 60px;
+    padding: 5px;
+    font-size: 1.1em;
+    border: 2px solid none;
+    border-radius: 5px;
+    text-align: center;
 }
 
 select, input[type="range"] { 

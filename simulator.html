@@ -308,13 +308,13 @@ th { background:#f2f2f2; }
 </div>
 
 <div class="input-group">
-    <label>SAF混合率: <span id="blendValue">0</span>%</label><br>
-    <input type="range" id="blend" min="0" max="50" step="1" value="0">
+    <label>SAF混合率(%)</label><br>
+    <input type="number" id="blend" min="0" max="50" step="0.1" value="0">
 </div>
 
 <div class="input-group">
-    <label>搭乗率: <span id="loadValue">80</span>%</label><br>
-    <input type="range" id="loadFactor" min="5" max="100" step="1" value="80">
+    <label>搭乗率(%)</label><br>
+    <input type="number" id="loadFactor" min="5" max="100" step="0.1" value="80">
 </div>
 
 <div class="button-group">
@@ -531,14 +531,21 @@ calcBtn.onclick = function(){
     }
 
     if(dep === arr){
-        resultDiv.innerHTML = "同一空港は不可";
+        alert("同一空港は不可");
         pdfBtn.style.display = "none";
         return;
     }
+    let rawBlendValue = parseFloat(blend.value); 
 
+    if (rawBlendValue > 50) {
+        alert("SAFの混合率の上限は現在50%が上限です。\n100%での運航は研究段階にあります。");
+        return; // ここで処理を終了し、計算させない
+    }
 
-let blendRate = blend.value / 100;
-let loadRate = load.value / 100;
+    // チェックを通った場合のみ、計算用の小数に変換
+    let blendRate = rawBlendValue / 100;
+    let loadRate = load.value / 100;
+
 
 let distance = calcDistance(
     airports[dep].lat, airports[dep].lon,
@@ -628,7 +635,7 @@ document.getElementById("conditionSummary").innerHTML = conditionHTML;
 // ===== 機材情報HTML =====
 let aircraftInfoHTML = `
 <div class="aircraft-info">
-    <h3>✈ 選択機材スペック</h3>
+    <h3>選択機材スペック</h3>
     <table>
         <tr><th>機材</th><td>${aircraftType}</td></tr>
         <tr><th>巡航速度</th><td>${cruiseSpeed} km/h</td></tr>
